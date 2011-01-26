@@ -105,7 +105,6 @@ module TrafficSim
         # We need to compare hamming distance of both possibilities
         forward_hamming_distance = hamming_distance(forward_position, next_position)
 
-
         if hamming_distance < forward_hamming_distance
           # For each movement, we must turn and accelerate,
           # so we must multiply the points by 2 (10 * 20)
@@ -119,12 +118,6 @@ module TrafficSim
         end
 
         points
-      end
-
-      def compare_positions(point_a, point_b)
-        (0..1).map do |idx|
-          point_a[idx] == point_b[idx]
-        end.all?
       end
 
       def hamming_distance(point_a, point_b)
