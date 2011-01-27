@@ -20,7 +20,7 @@ module TrafficSim
           @movements = build_commands(my_position, path)
         end
 
-        @movements.shift.tap { |move| update_status(move) }
+        @movements.shift
       end
 
       private
@@ -39,7 +39,7 @@ module TrafficSim
             commands << :launch
           else
             movement_mask     = MapTools.subtract_vectors(move, current_position)
-            current_direction = Pathfinder::MOVEMENT_MASK.invert[movement_mask]
+            current_direction = Pathfinder::DIRECTION[movement_mask]
             direction_command = :"face_#{current_direction}"
 
             commands << :decrease_speed if current_speed > 0
@@ -51,22 +51,6 @@ module TrafficSim
 
         commands
       end
-
-      def update_status(movement)
-        case movement.to_s
-        when /speed/
-          if movement =~ /increase/
-            amount = 1
-          else
-            amount = -1
-          end
-          @current_speed += amount
-
-        when /face_(.*)/
-          @direction = $1
-        end
-      end
-
     end
   end
 end
