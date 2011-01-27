@@ -111,7 +111,7 @@ module TrafficSim
         #
         # The other moves are just products of those, such as
         # a simple diagonal move as 30 and more complex one
-        # as 40 points. See the tests for more examples.
+        # as 40 points.
 
         def walking_cost(params)
           vehicle_direction = params[:vehicle_direction]
@@ -135,7 +135,7 @@ module TrafficSim
                                                       next_position)
 
           if hamming_distance < forward_hamming_distance
-            # For each movement, we must, deccelerate, turn and accelerate,
+            # For each movement, we must deaccelerate, turn and accelerate,
             # so we must multiply the points by 3
             points += hamming_distance * MOVEMENT_COST * 3
           else
