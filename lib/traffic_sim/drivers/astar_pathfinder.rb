@@ -19,16 +19,18 @@ module TrafficSim
           @node_map = NodeMap.new(map)
         end
 
+        # This is an implementation of the A* path finder algorithm.
+        # This implementation was based on the following article:
+        # http://www.policyalmanac.org/games/aStarTutorial.htm
         def find_path(start_position, final_position, start_direction)
           available_positions = [start_position]
 
-          while !available_positions.empty? && !@node_map[*final_position].visited?
+          while !available_positions.empty? && !@node_map.visited?(final_position)
 
-            current_position = lowest_cost_position(@node_map, available_positions)
+            current_position = lowest_cost_position(available_positions)
+            available_positions.delete(current_position)
 
-            available_positions -= [current_position]
-
-            @node_map[*current_position].mark_as_visited
+            @node_map.mark_as_visited(current_position)
 
             surroundings = possible_surroundings(current_position, final_position)
             surroundings.each do |position|
@@ -62,26 +64,39 @@ module TrafficSim
             end
           end
 
-          @node_map
+          make_path(start_position, final_position)
         end
 
         private
-        def lowest_cost_position(node_map, positions)
+        def lowest_cost_position(positions)
           positions.sort_by do |position|
-            node_map[*position].total_cost
+            @node_map[*position].total_cost
           end.first
         end
 
         def possible_surroundings(current_position, final_position)
           surroundings = MapTools.surroundings(current_position)
           surroundings = walkable(surroundings, final_position)
-          surroundings.select {|pos| !@node_map[*pos].visited? }
+          surroundings.reject { |pos| @node_map.visited?(pos) }
         end
 
+        # The final position is always walkable.
         def walkable(positions, final_position)
           positions.select do |position|
             @node_map[*position].walkable? || position == final_position
           end
+        end
+
+        def make_path(start_position, final_position)
+          path = []
+
+          position = final_position
+          while position != start_position
+            path << position
+            position = @node_map[*position].parent_position
+          end
+
+          path.reverse
         end
 
         # Each step iteraction in the Engine counts as 10 points.
@@ -102,9 +117,7 @@ module TrafficSim
 
           # We apply the movement_mask to the original position
           # and get a forward position (by going without turning)
-          forward_position = (0..1).map do |idx|
-            current_position[idx] + movement_mask[idx]
-          end
+          forward_position = MapTools.add_vectors(current_position, movement_mask)
 
           # We calculate simple Hamming distance between current
           # position and next_position. Its result is the number
@@ -112,18 +125,19 @@ module TrafficSim
           hamming_distance = hamming_distance(current_position, next_position)
 
           # We need to compare hamming distance of both possibilities
-          forward_hamming_distance = hamming_distance(forward_position, next_position)
+          forward_hamming_distance = hamming_distance(forward_position,
+                                                      next_position)
 
           if hamming_distance < forward_hamming_distance
-            # For each movement, we must turn and accelerate,
-            # so we must multiply the points by 2
-            points += hamming_distance * MOVEMENT_COST * 2
+            # For each movement, we must, deccelerate, turn and accelerate,
+            # so we must multiply the points by 3
+            points += hamming_distance * MOVEMENT_COST * 3
           else
             # By avoiding the first turn, we first go forward (apply 10 points)
             # and then calculate the moves from the forward position to the
             # final point
             points += MOVEMENT_COST
-            points += forward_hamming_distance * MOVEMENT_COST * 2
+            points += forward_hamming_distance * MOVEMENT_COST * 3
           end
 
           points
@@ -137,8 +151,8 @@ module TrafficSim
 
           hamming_distance(current_position, final_position) * MOVEMENT_COST +
             # Estimate two direction changes, and remember that each direction
-            # change costs 2 * MOVEMENT_COST
-            (2 * 2 * MOVEMENT_COST)
+            # change costs 3 * MOVEMENT_COST
+            (2 * 3 * MOVEMENT_COST)
         end
 
         def hamming_distance(point_a, point_b)

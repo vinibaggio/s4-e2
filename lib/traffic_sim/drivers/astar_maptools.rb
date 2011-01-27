@@ -29,13 +29,8 @@ module TrafficSim
 
           (0...number_of_rows).each do |i|
             (0...number_of_cols).each do |j|
-              if map[i,j].is_a?(Vehicle) && map[i, j].driver_name == driver_name
-                my_position = [i,j]
-              end
-
-              if owned_by?(map[i,j], driver_name)
-                dock_position = [i,j]
-              end
+              my_position   = [i,j] if is_it_me?(map[i,j], driver_name)
+              dock_position = [i,j] if owned_by?(map[i,j], driver_name)
             end
           end
 
@@ -44,6 +39,22 @@ module TrafficSim
 
         def owned_by?(map_element, driver_name)
           map_element.is_a?(Dock) && map_element.owned_by?(driver_name)
+        end
+
+        def is_it_me?(map_element, driver_name)
+          map_element.is_a?(Vehicle) && map_element.driver_name == driver_name
+        end
+
+        def add_vectors(vector_a, vector_b)
+          (0..1).map do |idx|
+            vector_a[idx] + vector_b[idx]
+          end
+        end
+
+        def subtract_vectors(vector_a, vector_b)
+          (0..1).map do |idx|
+            vector_a[idx] - vector_b[idx]
+          end
         end
       end
     end

@@ -16,6 +16,14 @@ module TrafficSim
           @node_map[row][column] = val
         end
 
+        def visited?(position)
+          self[*position].visited?
+        end
+
+        def mark_as_visited(position)
+          self[*position].visited = true
+        end
+
         private
         def copy_map_elements(map)
           number_of_columns = map.columns.length

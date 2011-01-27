@@ -12,10 +12,6 @@ module TrafficSim
           @walking_cost = @destination_cost = @total_cost = 0
         end
 
-        def mark_as_visited
-          @visited = true
-        end
-
         def walkable?
           @element.nil?
         end
