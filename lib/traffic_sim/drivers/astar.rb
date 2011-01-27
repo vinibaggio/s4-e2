@@ -34,32 +34,44 @@ module TrafficSim
         }
 
         next_moves.each do |move|
-          mask = Pathfinder::MOVEMENT_MASK[state[:direction]]
+          p state
+          mask            = Pathfinder::MOVEMENT_MASK[state[:direction]]
           simple_movement = MapTools.add_vectors(state[:position], mask)
 
+          partial_commands = []
           if simple_movement == move
-            commands << :launch
+            partial_commands += [:launch]
           else
-            commands += build_curve_commands(move, state)
+            partial_commands += [:decrease_speed] if state[:speed] > 0
+            partial_commands += build_curve_commands(state[:position],move)
           end
+
+          if partial_commands.include?(:increase_speed)
+            state[:speed] = 1
+          end
+          if command = partial_commands.select { |c| c =~ /face/ }.first
+            state[:direction] = direction_of_command(command)
+          end
+
+          commands += partial_commands
           state[:position] = move
         end
 
         commands
       end
 
-      def build_curve_commands(next_move, state)
-        movement_mask     = MapTools.subtract_vectors(next_move, state[:position])
-        state[:direction] = Pathfinder::DIRECTION[movement_mask]
-        # At this state, the vehicle will be moving, so
-        # whe need to reflect it for the next states
-        state[:speed]     = 1
-
-        direction_command = :"face_#{state[:direction]}"
+      def build_curve_commands(current_position, next_position)
+        movement_mask     = MapTools.subtract_vectors(next_position, current_position)
+        direction         = Pathfinder::DIRECTION[movement_mask]
+        direction_command = :"face_#{direction}"
 
         commands = []
-        commands << :decrease_speed if state[:speed] > 0
         commands += [direction_command, :increase_speed, :launch]
+      end
+
+      # :face_south => :south
+      def direction_of_command(command)
+        command.to_s.split('_')[1].to_sym
       end
     end
   end
