@@ -65,8 +65,7 @@ module TrafficSim
         direction         = Pathfinder::DIRECTION[movement_mask]
         direction_command = :"face_#{direction}"
 
-        commands = []
-        commands += [direction_command, :increase_speed, :launch]
+        [direction_command, :increase_speed, :launch]
       end
 
       # :face_south => :south
