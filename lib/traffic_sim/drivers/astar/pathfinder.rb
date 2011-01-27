@@ -1,6 +1,5 @@
-require_relative './astar_nodemap'
-require_relative './astar_maptools'
-require 'ruby-debug'
+require_relative './nodemap'
+require_relative './maptools'
 
 module TrafficSim
   module Drivers

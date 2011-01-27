@@ -1,4 +1,4 @@
-require_relative './astar_pathfinder'
+require_relative './astar/pathfinder'
 
 module TrafficSim
   module Drivers
