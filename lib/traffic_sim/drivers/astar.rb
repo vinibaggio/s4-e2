@@ -3,7 +3,7 @@ require_relative './astar/pathfinder'
 module TrafficSim
   module Drivers
     class AStar
-      def initialize(params={})
+      def initialize()
         @movements     = []
         @direction     = :north
         @current_speed = 0
@@ -27,29 +27,36 @@ module TrafficSim
 
       def build_commands(starting_position, next_moves)
         commands = []
-        current_position  = starting_position
-        current_direction = @direction
-        current_speed     = @current_speed
+        state = {
+          :position  => starting_position,
+          :direction => @direction,
+          :speed     => @current_speed
+        }
 
         next_moves.each do |move|
-          mask = Pathfinder::MOVEMENT_MASK[current_direction]
-          simple_movement = MapTools.add_vectors(current_position, mask)
+          mask = Pathfinder::MOVEMENT_MASK[state[:direction]]
+          simple_movement = MapTools.add_vectors(state[:position], mask)
 
           if simple_movement == move
             commands << :launch
           else
-            movement_mask     = MapTools.subtract_vectors(move, current_position)
-            current_direction = Pathfinder::DIRECTION[movement_mask]
-            direction_command = :"face_#{current_direction}"
-
-            commands << :decrease_speed if current_speed > 0
-            commands += [direction_command, :increase_speed, :launch]
-            current_speed = 1
+            state[:speed] = 1
+            commands += build_curve_commands(move, state)
           end
-          current_position = move
+          state[:position] = move
         end
 
         commands
+      end
+
+      def build_curve_commands(next_move, state)
+        movement_mask     = MapTools.subtract_vectors(next_move, state[:position])
+        state[:direction] = Pathfinder::DIRECTION[movement_mask]
+        direction_command = :"face_#{state[:direction]}"
+
+        commands = []
+        commands << :decrease_speed if state[:speed] > 0
+        commands += [direction_command, :increase_speed, :launch]
       end
     end
   end
