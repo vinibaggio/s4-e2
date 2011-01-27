@@ -103,6 +103,8 @@ module TrafficSim
             obj.driver_name
           when Dock
             obj.owner.upcase
+          else
+            obj
           end
         end
 
