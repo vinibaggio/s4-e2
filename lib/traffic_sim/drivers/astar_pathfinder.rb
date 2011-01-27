@@ -21,18 +21,16 @@ module TrafficSim
 
         def find_path(start_position, final_position, start_direction)
           available_positions = [start_position]
-          visited_positions   = []
 
-          while !available_positions.empty? &&
-                !visited_positions.include?(final_position)
+          while !available_positions.empty? && !@node_map[*final_position].visited?
 
             current_position = lowest_cost_position(@node_map, available_positions)
 
             available_positions -= [current_position]
-            visited_positions << current_position
 
-            surroundings = possible_surroundings(current_position, visited_positions, final_position)
+            @node_map[*current_position].mark_as_visited
 
+            surroundings = possible_surroundings(current_position, final_position)
             surroundings.each do |position|
               params = {
                 :vehicle_direction => start_direction,
@@ -47,18 +45,19 @@ module TrafficSim
               node = @node_map[*position]
 
               update_node = false
+
               if available_positions.include?(position)
-                update_node = node[:walking_cost] > walking_cost
+                update_node = node.walking_cost > walking_cost
               else
                 update_node = true
                 available_positions << position
               end
 
               if update_node
-                node[:parent]           = current_position
-                node[:walking_cost]     = walking_cost
-                node[:destination_cost] = destination_cost
-                node[:total_cost]       = total_cost
+                node.parent_position  = current_position
+                node.walking_cost     = walking_cost
+                node.destination_cost = destination_cost
+                node.total_cost       = total_cost
               end
             end
           end
@@ -69,34 +68,20 @@ module TrafficSim
         private
         def lowest_cost_position(node_map, positions)
           positions.sort_by do |position|
-            node_map[*position][:cost]
+            node_map[*position].total_cost
           end.first
         end
 
-        def possible_surroundings(current_position, visited_positions, final_position)
+        def possible_surroundings(current_position, final_position)
           surroundings = MapTools.surroundings(current_position)
           surroundings = walkable(surroundings, final_position)
-          surroundings -= visited_positions
+          surroundings.select {|pos| !@node_map[*pos].visited? }
         end
 
         def walkable(positions, final_position)
           positions.select do |position|
-            node = @node_map[*position]
-            node[:element].nil? || position == final_position
+            @node_map[*position].walkable? || position == final_position
           end
-        end
-
-        def total_cost(params)
-          current_position = params[:current_position]
-          next_position    = params[:next_position]
-          final_positio    = params[:final_position]
-          position         = params[:vehicle_position]
-
-          walking_cost(
-            :current_position => current_position,
-            :next_position    => next_position,
-            :vehicle_position => position
-          ) + destination_cost(current_position, final_position)
         end
 
         # Each step iteraction in the Engine counts as 10 points.

@@ -12,6 +12,7 @@ module TrafficSim
         end
 
         def []=(row, column, val)
+          raise ArgumentError, 'Must be of type Node' unless val.is_a?(Node)
           @node_map[row][column] = val
         end
 
@@ -22,9 +23,8 @@ module TrafficSim
 
           (0...number_of_rows).each do |i|
             (0...number_of_columns).each do |j|
-              @node_map[i]              ||= {}
-              @node_map[i][j]           ||= {}
-              @node_map[i][j][:element]   = map[i,j]
+              @node_map[i]    ||= {}
+              @node_map[i][j]   = Node.new(map[i,j])
             end
           end
         end

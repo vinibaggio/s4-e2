@@ -1,4 +1,4 @@
-require_relative './astar_nodemap'
+require_relative './astar_pathfinder'
 
 module TrafficSim
   module Drivers
@@ -28,7 +28,7 @@ module TrafficSim
         map_copy = Marshal.load(Marshal.dump(map))
         while position != my_position
           map_copy[*position] = 'X'
-          position = node_map[*position][:parent]
+          position = node_map[*position].parent_position
         end
         p map_copy
       end
