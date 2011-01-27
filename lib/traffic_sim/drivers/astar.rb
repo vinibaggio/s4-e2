@@ -40,7 +40,6 @@ module TrafficSim
           if simple_movement == move
             commands << :launch
           else
-            state[:speed] = 1
             commands += build_curve_commands(move, state)
           end
           state[:position] = move
@@ -52,6 +51,10 @@ module TrafficSim
       def build_curve_commands(next_move, state)
         movement_mask     = MapTools.subtract_vectors(next_move, state[:position])
         state[:direction] = Pathfinder::DIRECTION[movement_mask]
+        # At this state, the vehicle will be moving, so
+        # whe need to reflect it for the next states
+        state[:speed]     = 1
+
         direction_command = :"face_#{state[:direction]}"
 
         commands = []
