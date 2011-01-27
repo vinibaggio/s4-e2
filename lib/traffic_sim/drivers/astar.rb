@@ -34,7 +34,6 @@ module TrafficSim
         }
 
         next_moves.each do |move|
-          p state
           mask            = Pathfinder::MOVEMENT_MASK[state[:direction]]
           simple_movement = MapTools.add_vectors(state[:position], mask)
 
