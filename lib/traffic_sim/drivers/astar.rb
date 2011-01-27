@@ -16,7 +16,7 @@ module TrafficSim
           dock_position = pois[:dock_position]
 
           pathfinder = Pathfinder.new(map)
-          path = pathfinder.find_path(my_position, dock_position, @direction)
+          path       = pathfinder.find_path(my_position, dock_position, @direction)
           @movements = build_commands(my_position, path)
         end
 
