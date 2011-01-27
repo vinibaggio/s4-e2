@@ -1,5 +1,6 @@
-require_relative './nodemap'
-require_relative './maptools'
+require_relative 'node'
+require_relative 'nodemap'
+require_relative 'maptools'
 
 module TrafficSim
   module Drivers
