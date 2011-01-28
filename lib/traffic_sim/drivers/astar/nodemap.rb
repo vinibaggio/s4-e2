@@ -4,6 +4,7 @@ module TrafficSim
       class NodeMap
         def initialize(map)
           @node_map = {}
+          @map      = map
           copy_map_elements(map)
         end
 
@@ -22,6 +23,10 @@ module TrafficSim
 
         def mark_as_visited(position)
           self[*position].visited = true
+        end
+
+        def map_surroundings(position)
+          @map.surroundings(position)
         end
 
         private

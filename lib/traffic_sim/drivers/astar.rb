@@ -1,4 +1,5 @@
 require_relative 'astar/pathfinder'
+require_relative 'astar/points_of_interest'
 
 module TrafficSim
   module Drivers
@@ -11,9 +12,9 @@ module TrafficSim
 
       def step(map, driver_name)
         if @movements.empty?
-          pois          = MapTools.points_of_interest(map, driver_name)
-          my_position   = pois[:vehicle_position]
-          dock_position = pois[:dock_position]
+          pois          = PointsOfInterest.new(map, driver_name)
+          my_position   = pois.vehicle_position
+          dock_position = pois.dock_position
 
           pathfinder = Pathfinder.new(map)
           path       = pathfinder.find_path(my_position, dock_position, @direction)
