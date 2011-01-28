@@ -35,20 +35,11 @@ module TrafficSim
 
               node = @node_map[*position]
 
-              update_node = false
-
               if available_positions.include?(position)
-                update_node = node.walking_cost > movement.walking_cost
+                node.update(movement) if node.walking_cost > movement.walking_cost
               else
-                update_node = true
                 available_positions << position
-              end
-
-              if update_node
-                node.parent_position  = current_position
-                node.walking_cost     = movement.walking_cost
-                node.destination_cost = movement.destination_cost
-                node.total_cost       = movement.total_cost
+                node.update(movement)
               end
             end
           end

@@ -12,7 +12,7 @@ module TrafficSim
         DIRECTION = MOVEMENT_MASK.invert.freeze
         COST      = 10
 
-        attr_reader :walking_cost, :destination_cost
+        attr_reader :walking_cost, :destination_cost, :current_position
 
         def initialize(params = {})
           @vehicle_direction = params[:vehicle_direction]

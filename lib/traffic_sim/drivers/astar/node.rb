@@ -12,6 +12,13 @@ module TrafficSim
           @walking_cost = @destination_cost = @total_cost = 0
         end
 
+        def update(movement)
+          @parent_position  = movement.current_position
+          @walking_cost     = movement.walking_cost
+          @destination_cost = movement.destination_cost
+          @total_cost       = movement.total_cost
+        end
+
         def walkable?
           @element.nil?
         end
