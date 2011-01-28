@@ -35,7 +35,7 @@ module TrafficSim
         }
 
         next_moves.each do |move|
-          mask            = Pathfinder::MOVEMENT_MASK[state[:direction]]
+          mask            = Movement::MOVEMENT_MASK[state[:direction]]
           simple_movement = MapTools.add_vectors(state[:position], mask)
 
           partial_commands = []
@@ -62,7 +62,7 @@ module TrafficSim
 
       def build_curve_commands(current_position, next_position)
         movement_mask     = MapTools.subtract_vectors(next_position, current_position)
-        direction         = Pathfinder::DIRECTION[movement_mask]
+        direction         = Movement::DIRECTION[movement_mask]
         direction_command = :"face_#{direction}"
 
         [direction_command, :increase_speed, :launch]

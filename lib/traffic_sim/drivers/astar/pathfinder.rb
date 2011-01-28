@@ -1,22 +1,12 @@
 require_relative 'node'
 require_relative 'nodemap'
 require_relative 'maptools'
+require_relative 'movement'
 
 module TrafficSim
   module Drivers
     class AStar
       class Pathfinder
-        MOVEMENT_MASK = {
-          :north => [-1, 0],
-          :south => [1, 0],
-          :east  => [0, 1],
-          :west  => [0, -1]
-        }.freeze
-
-        DIRECTION = MOVEMENT_MASK.invert.freeze
-
-        MOVEMENT_COST = 10
-
         def initialize(map)
           @node_map = NodeMap.new(map)
         end
@@ -36,22 +26,19 @@ module TrafficSim
 
             surroundings = possible_surroundings(current_position, final_position)
             surroundings.each do |position|
-              params = {
+              movement = Movement.new({
                 :vehicle_direction => start_direction,
                 :current_position  => current_position,
                 :next_position     => position,
                 :final_position    => final_position
-              }
-              walking_cost = walking_cost(params)
-              destination_cost = destination_cost(params)
-              total_cost = walking_cost + destination_cost
+              })
 
               node = @node_map[*position]
 
               update_node = false
 
               if available_positions.include?(position)
-                update_node = node.walking_cost > walking_cost
+                update_node = node.walking_cost > movement.walking_cost
               else
                 update_node = true
                 available_positions << position
@@ -59,9 +46,9 @@ module TrafficSim
 
               if update_node
                 node.parent_position  = current_position
-                node.walking_cost     = walking_cost
-                node.destination_cost = destination_cost
-                node.total_cost       = total_cost
+                node.walking_cost     = movement.walking_cost
+                node.destination_cost = movement.destination_cost
+                node.total_cost       = movement.total_cost
               end
             end
           end
@@ -105,74 +92,6 @@ module TrafficSim
           path.reverse
         end
 
-        # The walking cost is based on the idea that moving the car is not
-        # so simple.
-        #
-        # Imagine that if the car is moving north, but now it must turn left.
-        # It should reduce its speed, move its direction, increase its speed
-        # to finally start walking. So each change of direction accounts for 3
-        # movements, which has high cost.
-        #
-        # To calculate the number of movements, we use simple Hamming distance.
-        # It is basically the number of space slots it has to move. The
-        # Hamming distance is given by calculating the difference for each
-        # index of the position
-        #
-        # Example:
-        #
-        # Vehicle a has to move from [1,1] to [2,2]. So it must move south
-        # and then left. The hamming distance is calculated as the following:
-        # |1 - 2| + |1 - 2| = 1 + 1 = 2 slots.
-        #
-        # With that in mind, we first check if the next position is achievable
-        # by only going forward. That is achieved by applying MOVEMENT_MASK
-        # and calculate the hamming distances.
-        #
-        # We pick whichever path that has the least hamming distances, multiply
-        # it by the MOVEMENT_COST and then by 3, which is the number of
-        # commands the system needs to achieve the movement.
-        def walking_cost(params)
-          vehicle_direction = params[:vehicle_direction]
-          current_position  = params[:current_position]
-          next_position     = params[:next_position]
-          points            = 0
-
-          movement_mask = MOVEMENT_MASK[vehicle_direction]
-
-          forward_position         = MapTools.add_vectors(current_position, movement_mask)
-          hamming_distance         = hamming_distance(current_position,
-                                                      next_position)
-          forward_hamming_distance = hamming_distance(forward_position,
-                                                      next_position)
-
-          if hamming_distance < forward_hamming_distance
-            points += hamming_distance * MOVEMENT_COST * 3
-          else
-            points += MOVEMENT_COST
-            points += forward_hamming_distance * MOVEMENT_COST * 3
-          end
-
-          points
-        end
-
-        # Calculate a rough estimate of cost of movement to reach
-        # the docking using Manhattan method. Need improvements.
-        #
-        # Estimate two direction changes, and remember that each direction
-        # change costs 3 * MOVEMENT_COST
-        def destination_cost(params)
-          current_position = params[:current_position]
-          final_position = params[:final_position]
-
-          hamming_distance(current_position, final_position) * MOVEMENT_COST +
-            (2 * 3 * MOVEMENT_COST)
-        end
-
-        def hamming_distance(point_a, point_b)
-          (0..1).inject(0) do |sum, idx|
-            sum += (point_a[idx] - point_b[idx]).abs
-          end
-        end
       end
     end
   end
