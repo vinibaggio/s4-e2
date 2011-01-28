@@ -1,3 +1,5 @@
+require 'matrix'
+
 module TrafficSim
   module Drivers
     class AStar
@@ -13,6 +15,14 @@ module TrafficSim
         COST      = 10
 
         attr_reader :walking_cost, :destination_cost, :current_position
+
+        def self.add_vectors(vector_a, vector_b)
+          (Vector[*vector_a] + Vector[*vector_b]).to_a
+        end
+
+        def self.subtract_vectors(vector_a, vector_b)
+          (Vector[*vector_a] - Vector[*vector_b]).to_a
+        end
 
         def initialize(params = {})
           @vehicle_direction = params[:vehicle_direction]
@@ -58,8 +68,8 @@ module TrafficSim
         def calculate_walking_cost
           points                   = 0
           movement_mask            = MOVEMENT_MASK[@vehicle_direction]
-          forward_position         = MapTools.add_vectors(@current_position,
-                                                          movement_mask)
+          forward_position         = self.class.add_vectors(@current_position,
+                                                            movement_mask)
           hamming_distance         = hamming_distance(@current_position,
                                                       @next_position)
           forward_hamming_distance = hamming_distance(forward_position,

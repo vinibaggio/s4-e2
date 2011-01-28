@@ -1,6 +1,5 @@
 require_relative 'node'
 require_relative 'nodemap'
-require_relative 'maptools'
 require_relative 'movement'
 
 module TrafficSim
@@ -19,8 +18,7 @@ module TrafficSim
 
           while !available_positions.empty? && !@node_map.visited?(final_position)
 
-            current_position = lowest_cost_position(available_positions)
-            available_positions.delete(current_position)
+            current_position = select_next_position(available_positions)
 
             @node_map.mark_as_visited(current_position)
 
@@ -48,10 +46,13 @@ module TrafficSim
         end
 
         private
-        def lowest_cost_position(positions)
-          positions.sort_by do |position|
-            @node_map[*position].total_cost
+
+        def select_next_position(positions)
+          position = positions.sort_by do |pos|
+            @node_map[*pos].total_cost
           end.first
+
+          position.tap { |pos| positions.delete(pos) }
         end
 
         def possible_surroundings(current_position, final_position)

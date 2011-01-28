@@ -36,7 +36,7 @@ module TrafficSim
 
         next_moves.each do |move|
           mask            = Movement::MOVEMENT_MASK[state[:direction]]
-          simple_movement = MapTools.add_vectors(state[:position], mask)
+          simple_movement = Movement.add_vectors(state[:position], mask)
 
           partial_commands = []
           if simple_movement == move
@@ -46,22 +46,33 @@ module TrafficSim
             partial_commands += build_curve_commands(state[:position],move)
           end
 
-          if partial_commands.include?(:increase_speed)
-            state[:speed] = 1
-          end
-          if command = partial_commands.select { |c| c =~ /face/ }.first
-            state[:direction] = direction_of_command(command)
-          end
+          update_state(:commands => partial_commands,
+                       :state    => state,
+                       :position => move)
 
           commands += partial_commands
-          state[:position] = move
         end
 
         commands
       end
 
+      def update_state(params)
+        state    = params[:state]
+        position = params[:position]
+        commands = params[:commands]
+
+        if commands.include?(:increase_speed)
+          state[:speed] = 1
+        end
+        if command = commands.select { |c| c =~ /face/ }.first
+          state[:direction] = direction_of_command(command)
+        end
+
+        state[:position] = position
+      end
+
       def build_curve_commands(current_position, next_position)
-        movement_mask     = MapTools.subtract_vectors(next_position, current_position)
+        movement_mask     = Movement.subtract_vectors(next_position, current_position)
         direction         = Movement::DIRECTION[movement_mask]
         direction_command = :"face_#{direction}"
 
